@@ -1,10 +1,12 @@
 ﻿using AppMvcFuncional.Data;
 using AppMvcFuncional.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace AppMvcFuncional.Controllers
 {
+    [Authorize]
     [Route("meus-alunos")]
     public class AlunosController : Controller
     {
@@ -15,9 +17,12 @@ namespace AppMvcFuncional.Controllers
             _context = context;
         }
 
+        [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
-              return _context.Aluno != null ? 
+            ViewBag.Sucesso = "Listagem bem sucedida!";
+
+            return _context.Aluno != null ? 
                           View(await _context.Aluno.ToListAsync()) :
                           Problem("Entity set 'ApplicationDbContext.Aluno'  is null.");
         }
@@ -54,8 +59,10 @@ namespace AppMvcFuncional.Controllers
             {
                 _context.Add(aluno);
                 await _context.SaveChangesAsync();
+                TempData["Sucesso"] = "Aluno incluído com sucesso!";
                 return RedirectToAction(nameof(Index));
             }
+
             return View(aluno);
         }
 
@@ -84,6 +91,8 @@ namespace AppMvcFuncional.Controllers
                 return NotFound();
             }
 
+            ModelState.Remove("EmailConfirmacao");
+
             if (ModelState.IsValid)
             {
                 try
@@ -102,6 +111,9 @@ namespace AppMvcFuncional.Controllers
                         throw;
                     }
                 }
+
+                TempData["Sucesso"] = "Aluno editado com sucesso!";
+
                 return RedirectToAction(nameof(Index));
             }
             return View(aluno);
@@ -140,6 +152,7 @@ namespace AppMvcFuncional.Controllers
             }
             
             await _context.SaveChangesAsync();
+            TempData["Sucesso"] = "Aluno excluído com sucesso!";
             return RedirectToAction(nameof(Index));
         }
 
